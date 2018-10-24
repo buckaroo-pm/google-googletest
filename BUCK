@@ -1,3 +1,13 @@
+# Work-around for linker flag order issue
+# https://github.com/facebook/buck/issues/1443
+prebuilt_cxx_library(
+  name = 'pthread',
+  header_only = True,
+  exported_linker_flags = [
+    '-lpthread',
+  ],
+)
+
 cxx_library(
   name = 'gtest',
   header_namespace = '',
@@ -27,6 +37,9 @@ cxx_library(
   exported_platform_linker_flags = [
     ('^linux.*', [ '-lpthread' ]),
   ],
+  platform_deps = [
+    ('linux.*', [ ':pthread' ]), 
+  ], 
   visibility = [
     'PUBLIC',
   ],
