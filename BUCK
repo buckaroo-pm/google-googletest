@@ -1,3 +1,5 @@
+load('//:subdir_glob.bzl', 'subdir_glob')
+
 # Work-around for linker flag order issue
 # https://github.com/facebook/buck/issues/1443
 prebuilt_cxx_library(
@@ -9,33 +11,47 @@ prebuilt_cxx_library(
 )
 
 cxx_library(
-  name = 'gtest',
+  name = 'googlemock',
   header_namespace = '',
+  exported_headers = subdir_glob([
+    ('googlemock/include', '**/*.h'),
+  ], exclude = [
+    'googlemock/include/internal/**/*.h',
+  ]),
+  headers = subdir_glob([
+    ('googlemock', 'src/*.h'),
+    ('googlemock', 'src/*.cc'),
+    ('googlemock/include', 'internal/**/*.h'),
+    ('googletest/include', '**/*.h'),
+  ]),
   srcs = [
-    'googletest/src/gtest-all.cc',
-    'googletest/src/gtest_main.cc',
+    'googlemock/src/gmock-all.cc',
+    'googlemock/src/gmock_main.cc',
   ],
+  platform_deps = [
+    ('linux.*', [ ':pthread' ]), 
+  ], 
+  visibility = [
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name = 'googletest',
+  header_namespace = '',
+  exported_headers = subdir_glob([
+    ('googletest/include', '**/*.h'),
+  ], exclude = [
+    'googletest/include/internal/**/*.h',
+  ]),
   headers = subdir_glob([
     ('googletest', 'src/*.h'),
     ('googletest', 'src/*.cc'),
     ('googletest/include', 'internal/**/*.h'),
   ]),
-  exported_headers = subdir_glob([
-    ('googletest/include', '**/*.h'),
-  ], excludes = [
-    'googletest/include/internal/**/*.h',
-  ]),
-  preprocessor_flags = [
-    '-U_STRICT_ANSI_',
-  ],
-  compiler_flags = [
-    '-std=c++14',
-  ],
-  platform_compiler_flags = [
-    ('linux.*', [ '-pthread' ]), 
-  ], 
-  exported_platform_linker_flags = [
-    ('^linux.*', [ '-lpthread' ]),
+  srcs = [
+    'googletest/src/gtest-all.cc',
+    'googletest/src/gtest_main.cc',
   ],
   platform_deps = [
     ('linux.*', [ ':pthread' ]), 
